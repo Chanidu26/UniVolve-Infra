@@ -1,9 +1,8 @@
-# ---------- Azure Container Registry ----------
 resource "azurerm_container_registry" "acr" {
   name                = replace("acr${local.name}", "-", "")
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  sku                 = "Premium"          # Premium required for private endpoints
+  sku                 = "Premium"
   admin_enabled       = false
   tags                = local.tags
 }
@@ -19,5 +18,10 @@ resource "azurerm_private_endpoint" "acr" {
     private_connection_resource_id = azurerm_container_registry.acr.id
     subresource_names              = ["registry"]
     is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "acr-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.acr.id]
   }
 }

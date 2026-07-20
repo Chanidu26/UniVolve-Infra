@@ -1,4 +1,3 @@
-# ---------- Container Apps (backend, internal-only, VNet-integrated) ----------
 resource "azurerm_log_analytics_workspace" "law" {
   name                = "law-${local.name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -14,11 +13,10 @@ resource "azurerm_container_app_environment" "env" {
   location                       = azurerm_resource_group.rg.location
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.law.id
   infrastructure_subnet_id       = azurerm_subnet.aca.id
-  internal_load_balancer_enabled = true          # backend is NOT publicly reachable
+  internal_load_balancer_enabled = true
   tags                           = local.tags
 }
 
-# User-assigned Managed Identity — pulls from ACR + reads Key Vault (no credentials in code)
 resource "azurerm_user_assigned_identity" "backend" {
   name                = "id-backend-${local.name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -54,17 +52,18 @@ resource "azurerm_container_app" "backend" {
     identity = azurerm_user_assigned_identity.backend.id
   }
 
-  # Secrets sourced from Key Vault via Managed Identity
   secret {
     name                = "db-password"
     key_vault_secret_id = azurerm_key_vault_secret.db_password.id
     identity            = azurerm_user_assigned_identity.backend.id
   }
+
   secret {
     name                = "acs-connection"
     key_vault_secret_id = azurerm_key_vault_secret.acs_connection.id
     identity            = azurerm_user_assigned_identity.backend.id
   }
+
   secret {
     name                = "storage-connection"
     key_vault_secret_id = azurerm_key_vault_secret.storage_connection.id
@@ -72,7 +71,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled = false      # internal only; APIM is the sole entry point
+    external_enabled = false
     target_port      = 4000
     traffic_weight {
       latest_revision = true
@@ -82,7 +81,7 @@ resource "azurerm_container_app" "backend" {
 
   template {
     min_replicas = 1
-    max_replicas = 5              # NFR-02: auto-scale for peak registration load
+    max_replicas = 5
 
     container {
       name   = "backend"
@@ -110,9 +109,17 @@ resource "azurerm_container_app" "backend" {
         name        = "ACS_CONNECTION_STRING"
         secret_name = "acs-connection"
       }
-      env { 
-           name = "ACS_SENDER"
-           value = "DoNotReply@${azurerm_email_communication_service_domain.domain.from_sender_domain}" 
+      env {
+        name  = "ACS_SENDER"
+        value = "DoNotReply@${azurerm_email_communication_service_domain.domain.from_sender_domain}"
+      }
+      env {
+        name        = "STORAGE_CONNECTION_STRING"
+        secret_name = "storage-connection"
+      }
+      env {
+        name  = "STORAGE_CONTAINER"
+        value = "avatars"
       }
       env {
         name  = "KEY_VAULT_URI"

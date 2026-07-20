@@ -1,4 +1,3 @@
-# ---------- Key Vault (secrets, private endpoint, RBAC) ----------
 resource "azurerm_key_vault" "kv" {
   name                          = "kv-${local.name}"
   resource_group_name           = azurerm_resource_group.rg.name
@@ -22,9 +21,13 @@ resource "azurerm_private_endpoint" "kv" {
     subresource_names              = ["vault"]
     is_manual_connection           = false
   }
+
+  private_dns_zone_group {
+    name                 = "kv-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.kv.id]
+  }
 }
 
-# Terraform runner needs temporary access to write the secret
 resource "azurerm_role_assignment" "tf_kv_admin" {
   scope                = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Administrator"
