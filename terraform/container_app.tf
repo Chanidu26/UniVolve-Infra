@@ -65,6 +65,11 @@ resource "azurerm_container_app" "backend" {
     key_vault_secret_id = azurerm_key_vault_secret.acs_connection.id
     identity            = azurerm_user_assigned_identity.backend.id
   }
+  secret {
+    name                = "storage-connection"
+    key_vault_secret_id = azurerm_key_vault_secret.storage_connection.id
+    identity            = azurerm_user_assigned_identity.backend.id
+  }
 
   ingress {
     external_enabled = false      # internal only; APIM is the sole entry point

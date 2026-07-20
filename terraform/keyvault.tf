@@ -44,3 +44,10 @@ resource "azurerm_key_vault_secret" "acs_connection" {
   key_vault_id = azurerm_key_vault.kv.id
   depends_on   = [azurerm_role_assignment.tf_kv_admin]
 }
+
+resource "azurerm_key_vault_secret" "storage_connection" {
+  name         = "storage-connection-string"
+  value        = azurerm_storage_account.assets.primary_connection_string
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [azurerm_role_assignment.tf_kv_admin]
+}
