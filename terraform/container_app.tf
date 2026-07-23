@@ -125,23 +125,18 @@ resource "azurerm_container_app" "backend" {
         name  = "KEY_VAULT_URI"
         value = azurerm_key_vault.kv.vault_uri
       }
-      env {
-        name  = "B2C_TENANT_NAME"
-        value = var.b2c_tenant_name
+      env { 
+        name = "TENANT_NAME" 
+        value = var.tenant_name 
       }
-      env {
-        name  = "B2C_TENANT_ID"
-        value = var.b2c_tenant_id
+      env { 
+        name = "TENANT_ID"   
+        value = var.tenant_id 
       }
-      env {
-        name  = "B2C_CLIENT_ID"
-        value = var.b2c_client_id
+      env { 
+        name = "CLIENT_ID"   
+        value = var.client_id 
       }
-      env {
-        name  = "B2C_POLICY"
-        value = var.b2c_policy
-      }
-
       liveness_probe {
         transport = "HTTP"
         path      = "/health"

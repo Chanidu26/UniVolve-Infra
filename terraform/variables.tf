@@ -9,10 +9,9 @@ variable "db_admin_password" {
   sensitive   = true
 }
 
-variable "b2c_tenant_name" { description = "AD B2C tenant short name (created manually)" }
-variable "b2c_tenant_id"   { description = "AD B2C tenant GUID" }
-variable "b2c_client_id"   { description = "SPA app registration client id in B2C" }
-variable "b2c_policy"      { default = "B2C_1_signupsignin" }
+variable "tenant_name" { description = "Entra External ID tenant short name" }
+variable "tenant_id"   { description = "Entra External ID tenant GUID" }
+variable "client_id"   { description = "SPA app registration client ID" }
 
 variable "backend_image" {
   description = "Container image, e.g. <acr>.azurecr.io/vms-backend:latest"

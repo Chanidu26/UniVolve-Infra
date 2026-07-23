@@ -54,3 +54,10 @@ resource "azurerm_key_vault_secret" "storage_connection" {
   key_vault_id = azurerm_key_vault.kv.id
   depends_on   = [azurerm_role_assignment.tf_kv_admin]
 }
+
+resource "azurerm_key_vault_secret" "db_schema" {
+  name         = "db-schema"
+  value        = file("${path.module}/schema.sql")
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [azurerm_role_assignment.tf_kv_admin]
+}

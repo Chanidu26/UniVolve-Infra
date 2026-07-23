@@ -43,8 +43,8 @@ resource "azurerm_api_management_api_policy" "policy" {
       <allowed-headers><header>*</header></allowed-headers>
     </cors>
     <validate-jwt header-name="Authorization" failed-validation-httpcode="401">
-      <openid-config url="https://${var.b2c_tenant_name}.b2clogin.com/${var.b2c_tenant_name}.onmicrosoft.com/${var.b2c_policy}/v2.0/.well-known/openid-configuration" />
-      <audiences><audience>${var.b2c_client_id}</audience></audiences>
+      <openid-config url="https://${var.tenant_name}.ciamlogin.com/${var.tenant_name}.onmicrosoft.com/v2.0/.well-known/openid-configuration" />
+      <audiences><audience>${var.client_id}</audience></audiences>
     </validate-jwt>
     <rate-limit calls="100" renewal-period="60" />
   </inbound>
