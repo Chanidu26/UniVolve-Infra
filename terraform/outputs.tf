@@ -2,9 +2,14 @@ output "resource_group"      { value = azurerm_resource_group.rg.name }
 output "acr_login_server"    { value = azurerm_container_registry.acr.login_server }
 output "backend_internal_fqdn" { value = azurerm_container_app.backend.ingress[0].fqdn }
 output "apim_gateway_url"    { value = azurerm_api_management.apim.gateway_url }
-output "static_web_app_url"  { value = "https://${azurerm_static_web_app.frontend.default_host_name}" }
-output "static_web_app_deploy_token" {
-  value     = azurerm_static_web_app.frontend.api_key
+output "admin_static_web_app_url" { value = "https://${azurerm_static_web_app.admin_frontend.default_host_name}" }
+output "admin_static_web_app_deploy_token" {
+  value     = azurerm_static_web_app.admin_frontend.api_key
+  sensitive = true
+}
+output "volunteer_static_web_app_url" { value = "https://${azurerm_static_web_app.volunteer_frontend.default_host_name}" }
+output "volunteer_static_web_app_deploy_token" {
+  value     = azurerm_static_web_app.volunteer_frontend.api_key
   sensitive = true
 }
 output "postgres_fqdn"       { value = azurerm_postgresql_flexible_server.pg.fqdn }
