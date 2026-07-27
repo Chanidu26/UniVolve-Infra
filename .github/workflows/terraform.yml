@@ -74,13 +74,13 @@ jobs:
               body: output.substring(0, 65000)
             });
 
-      # Apply: automatic on push to main, or manual dispatch with action=apply
-      - name: Terraform Apply
-        if: >
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'workflow_dispatch' && inputs.action == 'apply')
-        run: terraform apply -auto-approve tfplan
+      # # Apply: automatic on push to main, or manual dispatch with action=apply
+      # - name: Terraform Apply
+      #   if: >
+      #     (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      #     (github.event_name == 'workflow_dispatch' && inputs.action == 'apply')
+      #   run: terraform apply -auto-approve tfplan
 
-      - name: Terraform Destroy (manual only)
-        if: github.event_name == 'workflow_dispatch' && inputs.action == 'destroy'
-        run: terraform destroy -auto-approve
+      # - name: Terraform Destroy (manual only)
+      #   if: github.event_name == 'workflow_dispatch' && inputs.action == 'destroy'
+      #   run: terraform destroy -auto-approve
