@@ -10,7 +10,7 @@ resource "azurerm_storage_account" "assets" {
 
 resource "azurerm_storage_container" "avatars" {
   name                  = "avatars"
-  storage_account_id    = azurerm_storage_account.assets.id
+  storage_account_name  = azurerm_storage_account.assets.name
   container_access_type = "blob"
 }
 
