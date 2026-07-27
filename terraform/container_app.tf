@@ -125,17 +125,17 @@ resource "azurerm_container_app" "backend" {
         name  = "KEY_VAULT_URI"
         value = azurerm_key_vault.kv.vault_uri
       }
-      env { 
-        name = "TENANT_NAME" 
-        value = var.tenant_name 
+      env {
+        name  = "TENANT_NAME"
+        value = var.tenant_name
       }
-      env { 
-        name = "TENANT_ID"   
-        value = var.tenant_id 
+      env {
+        name  = "TENANT_ID"
+        value = var.tenant_id
       }
-      env { 
-        name = "CLIENT_ID"   
-        value = var.client_id 
+      env {
+        name  = "API_CLIENT_ID"
+        value = var.api_client_id
       }
       liveness_probe {
         transport = "HTTP"

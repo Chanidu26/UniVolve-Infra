@@ -6,7 +6,7 @@ resource "azurerm_api_management" "apim" {
   publisher_name       = "University VMS"
   publisher_email      = "admin@university.lk"
   sku_name             = "Developer_1"
-  virtual_network_type = "External"           # public front door, private backend reach
+  virtual_network_type = "External" # public front door, private backend reach
 
   virtual_network_configuration {
     subnet_id = azurerm_subnet.apim.id
@@ -44,7 +44,8 @@ resource "azurerm_api_management_api_policy" "policy" {
     </cors>
     <validate-jwt header-name="Authorization" failed-validation-httpcode="401">
       <openid-config url="https://${var.tenant_name}.ciamlogin.com/${var.tenant_name}.onmicrosoft.com/v2.0/.well-known/openid-configuration" />
-      <audiences><audience>${var.client_id}</audience></audiences>
+      <!-- Audience is the API app's own identifier, not either SPA's client ID -->
+      <audiences><audience>api://${var.api_client_id}</audience></audiences>
     </validate-jwt>
     <rate-limit calls="100" renewal-period="60" />
   </inbound>
