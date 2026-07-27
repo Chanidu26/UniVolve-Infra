@@ -50,7 +50,8 @@ jobs:
             -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}" \
             -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE }}" \
             -backend-config="container_name=tfstate" \
-            -backend-config="key=vms.terraform.tfstate"
+            -backend-config="key=vms.terraform.tfstate" \
+            -backend-config="use_azuread_auth=true"
 
       - name: Terraform Format & Validate
         run: |
