@@ -3,7 +3,7 @@
 resource "azurerm_static_web_app" "admin_frontend" {
   name                = "swa-admin-${local.name}"
   resource_group_name = azurerm_resource_group.rg.name
-  location            = "eastasia" 
+  location            = "eastasia"
   sku_tier            = "Standard"
   sku_size            = "Standard"
   tags                = local.tags
