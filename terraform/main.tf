@@ -14,8 +14,9 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 locals {
-  name = "${var.project}-${var.environment}"
-  tags = { project = var.project, environment = var.environment, managed_by = "terraform" }
+  name          = "${var.project}-${var.environment}"
+  unique_suffix = substr(replace(data.azurerm_client_config.current.subscription_id, "-", ""), 0, 6)
+  tags          = { project = var.project, environment = var.environment, managed_by = "terraform" }
 }
 
 resource "azurerm_resource_group" "rg" {
