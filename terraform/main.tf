@@ -23,3 +23,11 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
   tags     = local.tags
 }
+
+resource "azurerm_resource_provider_registration" "communication" {
+  name = "Microsoft.Communication"
+}
+
+resource "azurerm_resource_provider_registration" "app" {
+  name = "Microsoft.App"
+}

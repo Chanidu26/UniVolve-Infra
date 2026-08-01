@@ -4,6 +4,7 @@ resource "azurerm_communication_service" "acs" {
   resource_group_name = azurerm_resource_group.rg.name
   data_location       = "Asia Pacific"
   tags                = local.tags
+  depends_on          = [azurerm_resource_provider_registration.communication]
 }
 
 resource "azurerm_email_communication_service" "email" {
@@ -11,6 +12,7 @@ resource "azurerm_email_communication_service" "email" {
   resource_group_name = azurerm_resource_group.rg.name
   data_location       = "Asia Pacific"
   tags                = local.tags
+  depends_on          = [azurerm_resource_provider_registration.communication]
 }
 
 resource "azurerm_email_communication_service_domain" "domain" {

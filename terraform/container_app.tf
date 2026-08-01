@@ -15,6 +15,7 @@ resource "azurerm_container_app_environment" "env" {
   infrastructure_subnet_id       = azurerm_subnet.aca.id
   internal_load_balancer_enabled = true
   tags                           = local.tags
+  depends_on                     = [azurerm_resource_provider_registration.app]
 }
 
 resource "azurerm_user_assigned_identity" "backend" {

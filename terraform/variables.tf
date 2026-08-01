@@ -22,3 +22,20 @@ variable "backend_image" {
   description = "Container image, e.g. <acr>.azurecr.io/vms-backend:latest"
   default     = ""
 }
+
+variable "postgres_high_availability_mode" {
+  description = "PostgreSQL Flexible Server HA mode. Supported values: Disabled, SameZone, ZoneRedundant."
+  type        = string
+  default     = "Disabled"
+
+  validation {
+    condition     = contains(["Disabled", "SameZone", "ZoneRedundant"], var.postgres_high_availability_mode)
+    error_message = "postgres_high_availability_mode must be one of: Disabled, SameZone, ZoneRedundant."
+  }
+}
+
+variable "key_vault_public_network_access_enabled" {
+  description = "Allow public network access to Key Vault for Terraform operations when runner is outside the VNet."
+  type        = bool
+  default     = true
+}

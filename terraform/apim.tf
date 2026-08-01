@@ -11,7 +11,8 @@ resource "azurerm_api_management" "apim" {
   virtual_network_configuration {
     subnet_id = azurerm_subnet.apim.id
   }
-  tags = local.tags
+  tags       = local.tags
+  depends_on = [azurerm_subnet_network_security_group_association.apim]
 }
 
 resource "azurerm_api_management_api" "vms" {
