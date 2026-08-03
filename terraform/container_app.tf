@@ -45,12 +45,23 @@ resource "azurerm_role_assignment" "kv_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.backend.principal_id
 }
 
+# RBAC role assignments complete at the ARM control-plane level well before the
+# actual authorization grant propagates through Azure's data plane. Without this
+# wait, the Container App can start provisioning (and try to pull the ACR image /
+# resolve Key Vault secret references via the managed identity) before the grants
+# are actually effective, failing with "Unable to get value using Managed identity".
+resource "time_sleep" "wait_for_backend_rbac_propagation" {
+  depends_on      = [azurerm_role_assignment.acr_pull, azurerm_role_assignment.kv_secrets_user]
+  create_duration = "90s"
+}
+
 resource "azurerm_container_app" "backend" {
   name                         = "ca-backend-${local.name}"
   container_app_environment_id = azurerm_container_app_environment.env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
   tags                         = local.tags
+  depends_on                   = [time_sleep.wait_for_backend_rbac_propagation]
 
   identity {
     type         = "UserAssigned"

@@ -14,6 +14,10 @@ resource "azurerm_private_endpoint" "kv" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   subnet_id           = azurerm_subnet.pe.id
+  # Completes the acr -> blob -> kv sequential chain (see storage.tf) - Azure
+  # serializes subnet-modifying operations on snet-private-endpoints and rejects
+  # concurrent attempts with "ReferencedResourceNotProvisioned ... Updating state".
+  depends_on = [azurerm_private_endpoint.blob]
 
   private_service_connection {
     name                           = "kv-connection"

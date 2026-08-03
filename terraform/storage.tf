@@ -24,6 +24,10 @@ resource "azurerm_private_endpoint" "blob" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   subnet_id           = azurerm_subnet.pe.id
+  # All private endpoints on snet-private-endpoints must be created sequentially -
+  # Azure serializes subnet-modifying operations and rejects concurrent attempts
+  # with "ReferencedResourceNotProvisioned ... subnet is in Updating state".
+  depends_on = [azurerm_private_endpoint.acr]
 
   private_service_connection {
     name                           = "blob-connection"
