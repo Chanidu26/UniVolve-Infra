@@ -7,6 +7,15 @@ resource "azurerm_log_analytics_workspace" "law" {
   tags                = local.tags
 }
 
+# Same class of issue as the APIM/subnet wait below: Azure can report the Container
+# App Environment as deleted before its managed infrastructure is fully reconciled,
+# which then blocks unregistering the Microsoft.App provider. Force a wait between
+# the two on destroy. No effect on create.
+resource "time_sleep" "wait_for_container_app_cleanup" {
+  depends_on       = [azurerm_resource_provider_registration.app]
+  destroy_duration = "10m"
+}
+
 resource "azurerm_container_app_environment" "env" {
   name                           = "cae-${local.name}"
   resource_group_name            = azurerm_resource_group.rg.name
@@ -15,7 +24,7 @@ resource "azurerm_container_app_environment" "env" {
   infrastructure_subnet_id       = azurerm_subnet.aca.id
   internal_load_balancer_enabled = true
   tags                           = local.tags
-  depends_on                     = [azurerm_resource_provider_registration.app]
+  depends_on                     = [time_sleep.wait_for_container_app_cleanup]
 }
 
 resource "azurerm_user_assigned_identity" "backend" {

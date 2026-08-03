@@ -1,3 +1,12 @@
+# Azure reports the APIM VNet-injected gateway VMSS as "deleted" via ARM before it
+# has actually finished decommissioning, which leaves a NIC on snet-apim that blocks
+# the subnet's own deletion. This forces Terraform to wait after destroying APIM,
+# before it attempts to destroy anything the subnet depends on. No effect on create.
+resource "time_sleep" "wait_for_apim_subnet_cleanup" {
+  depends_on       = [azurerm_subnet.apim]
+  destroy_duration = "20m"
+}
+
 # ---------- API Management (JWT validation, rate limiting, VNet forwarding) ----------
 resource "azurerm_api_management" "apim" {
   name                 = "apim-${local.name}-${local.unique_suffix}"
@@ -11,8 +20,11 @@ resource "azurerm_api_management" "apim" {
   virtual_network_configuration {
     subnet_id = azurerm_subnet.apim.id
   }
-  tags       = local.tags
-  depends_on = [azurerm_subnet_network_security_group_association.apim]
+  tags = local.tags
+  depends_on = [
+    azurerm_subnet_network_security_group_association.apim,
+    time_sleep.wait_for_apim_subnet_cleanup,
+  ]
 }
 
 resource "azurerm_api_management_api" "vms" {
