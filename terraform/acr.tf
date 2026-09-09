@@ -1,27 +1,29 @@
-resource "azurerm_container_registry" "acr" {
-  name                = replace("acr${local.name}", "-", "")
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  sku                 = "Premium"
-  admin_enabled       = false
-  tags                = local.tags
+# Section 7 — Azure Container Registry
+resource "azurerm_container_registry" "main" {
+  name                = "acrunivolveprod"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "Premium" # required for private endpoints
+  admin_enabled       = false     # backend authenticates via managed identity
+  tags                = var.tags
 }
 
 resource "azurerm_private_endpoint" "acr" {
-  name                = "pe-acr-${local.name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  subnet_id           = azurerm_subnet.pe.id
+  name                = "pe-acr-${var.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  subnet_id           = azurerm_subnet.private_endpoints.id
+  tags                = var.tags
 
   private_service_connection {
-    name                           = "acr-connection"
-    private_connection_resource_id = azurerm_container_registry.acr.id
+    name                           = "psc-acr"
+    private_connection_resource_id = azurerm_container_registry.main.id
     subresource_names              = ["registry"]
     is_manual_connection           = false
   }
 
   private_dns_zone_group {
-    name                 = "acr-dns-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.acr.id]
+    name                 = "pdz-acr"
+    private_dns_zone_ids = [azurerm_private_dns_zone.zones["acr"].id]
   }
 }

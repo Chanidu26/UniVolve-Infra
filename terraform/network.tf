@@ -1,16 +1,16 @@
-# ---------- Virtual Network ----------
-resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-${local.name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+# Section 3 — Virtual Network + subnets
+resource "azurerm_virtual_network" "main" {
+  name                = "vnet-${var.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
   address_space       = ["10.10.0.0/16"]
-  tags                = local.tags
+  tags                = var.tags
 }
 
 resource "azurerm_subnet" "aca" {
   name                 = "snet-aca"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.10.0.0/23"]
 
   delegation {
@@ -24,11 +24,12 @@ resource "azurerm_subnet" "aca" {
 
 resource "azurerm_subnet" "db" {
   name                 = "snet-db"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.10.2.0/24"]
+
   delegation {
-    name = "pg-delegation"
+    name = "db-delegation"
     service_delegation {
       name    = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
@@ -36,25 +37,26 @@ resource "azurerm_subnet" "db" {
   }
 }
 
-resource "azurerm_subnet" "pe" {
+resource "azurerm_subnet" "private_endpoints" {
   name                 = "snet-private-endpoints"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.10.3.0/24"]
 }
 
 resource "azurerm_subnet" "apim" {
   name                 = "snet-apim"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.10.4.0/24"]
 }
 
+# Section 4 — NSG for the APIM subnet (mandatory before APIM can deploy into it)
 resource "azurerm_network_security_group" "apim" {
-  name                = "nsg-apim-${local.name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  tags                = local.tags
+  name                = "nsg-apim-${var.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = var.tags
 
   security_rule {
     name                       = "allow-https-inbound"
@@ -98,82 +100,55 @@ resource "azurerm_subnet_network_security_group_association" "apim" {
   network_security_group_id = azurerm_network_security_group.apim.id
 }
 
-# ---------- NAT Gateway (outbound internet for ACA → ACS, Blob Storage) ----------
+# Section 5 — NAT Gateway (outbound internet for the Container Apps subnet)
 resource "azurerm_public_ip" "nat" {
-  name                = "pip-nat-${local.name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  name                = "pip-nat-${var.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  tags                = local.tags
+  tags                = var.tags
 }
 
-resource "azurerm_nat_gateway" "nat" {
-  name                = "nat-${local.name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+resource "azurerm_nat_gateway" "main" {
+  name                = "nat-${var.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
   sku_name            = "Standard"
-  tags                = local.tags
+  tags                = var.tags
 }
 
-resource "azurerm_nat_gateway_public_ip_association" "nat" {
-  nat_gateway_id       = azurerm_nat_gateway.nat.id
+resource "azurerm_nat_gateway_public_ip_association" "main" {
+  nat_gateway_id       = azurerm_nat_gateway.main.id
   public_ip_address_id = azurerm_public_ip.nat.id
 }
 
 resource "azurerm_subnet_nat_gateway_association" "aca" {
   subnet_id      = azurerm_subnet.aca.id
-  nat_gateway_id = azurerm_nat_gateway.nat.id
+  nat_gateway_id = azurerm_nat_gateway.main.id
 }
 
-# ---------- Private DNS: PostgreSQL ----------
-resource "azurerm_private_dns_zone" "pg" {
-  name                = "${local.name}.private.postgres.database.azure.com"
-  resource_group_name = azurerm_resource_group.rg.name
+# Section 6 — Private DNS zones (linked to the VNet)
+locals {
+  private_dns_zones = {
+    postgres = "${var.prefix}.private.postgres.database.azure.com"
+    keyvault = "privatelink.vaultcore.azure.net"
+    acr      = "privatelink.azurecr.io"
+    blob     = "privatelink.blob.core.windows.net"
+  }
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "pg" {
-  name                  = "pg-dns-link"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.pg.name
-  virtual_network_id    = azurerm_virtual_network.vnet.id
+resource "azurerm_private_dns_zone" "zones" {
+  for_each            = local.private_dns_zones
+  name                = each.value
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = var.tags
 }
 
-# ---------- Private DNS: Key Vault ----------
-resource "azurerm_private_dns_zone" "kv" {
-  name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "kv" {
-  name                  = "kv-dns-link"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.kv.name
-  virtual_network_id    = azurerm_virtual_network.vnet.id
-}
-
-# ---------- Private DNS: ACR ----------
-resource "azurerm_private_dns_zone" "acr" {
-  name                = "privatelink.azurecr.io"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
-  name                  = "acr-dns-link"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.acr.name
-  virtual_network_id    = azurerm_virtual_network.vnet.id
-}
-
-# ---------- Private DNS: Blob ----------
-resource "azurerm_private_dns_zone" "blob" {
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
-  name                  = "blob-dns-link"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.blob.name
-  virtual_network_id    = azurerm_virtual_network.vnet.id
+resource "azurerm_private_dns_zone_virtual_network_link" "zones" {
+  for_each              = local.private_dns_zones
+  name                  = "link-${each.key}"
+  resource_group_name   = azurerm_resource_group.main.name
+  private_dns_zone_name = azurerm_private_dns_zone.zones[each.key].name
+  virtual_network_id    = azurerm_virtual_network.main.id
 }

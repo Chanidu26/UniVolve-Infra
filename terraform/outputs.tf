@@ -1,17 +1,50 @@
-output "resource_group" { value = azurerm_resource_group.rg.name }
-output "acr_login_server" { value = azurerm_container_registry.acr.login_server }
-output "backend_internal_fqdn" { value = azurerm_container_app.backend.ingress[0].fqdn }
-output "apim_gateway_url" { value = azurerm_api_management.apim.gateway_url }
-output "admin_static_web_app_url" { value = "https://${azurerm_static_web_app.admin_frontend.default_host_name}" }
-output "admin_static_web_app_deploy_token" {
-  value     = azurerm_static_web_app.admin_frontend.api_key
+output "resource_group_name" {
+  value = azurerm_resource_group.main.name
+}
+
+output "acr_login_server" {
+  value = azurerm_container_registry.main.login_server
+}
+
+output "acr_name" {
+  value = azurerm_container_registry.main.name
+}
+
+output "postgres_fqdn" {
+  value = azurerm_postgresql_flexible_server.main.fqdn
+}
+
+output "key_vault_name" {
+  value = azurerm_key_vault.main.name
+}
+
+output "container_app_name" {
+  value = azurerm_container_app.backend.name
+}
+
+output "admin_swa_default_hostname" {
+  value = azurerm_static_web_app.admin.default_host_name
+}
+
+output "volunteer_swa_default_hostname" {
+  value = azurerm_static_web_app.volunteer.default_host_name
+}
+
+output "admin_swa_api_key" {
+  value     = azurerm_static_web_app.admin.api_key
   sensitive = true
 }
-output "volunteer_static_web_app_url" { value = "https://${azurerm_static_web_app.volunteer_frontend.default_host_name}" }
-output "volunteer_static_web_app_deploy_token" {
-  value     = azurerm_static_web_app.volunteer_frontend.api_key
+
+output "volunteer_swa_api_key" {
+  value     = azurerm_static_web_app.volunteer.api_key
   sensitive = true
 }
-output "postgres_fqdn" { value = azurerm_postgresql_flexible_server.pg.fqdn }
-output "key_vault_uri" { value = azurerm_key_vault.kv.vault_uri }
-output "acs_sender_domain" { value = azurerm_email_communication_service_domain.domain.from_sender_domain }
+
+output "apim_gateway_url" {
+  value = azurerm_api_management.main.gateway_url
+}
+
+output "vite_api_url" {
+  description = "Value to set as VITE_API_URL in both frontend deploy workflows"
+  value       = "${azurerm_api_management.main.gateway_url}/api"
+}

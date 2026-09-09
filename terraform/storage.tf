@@ -1,43 +1,37 @@
-resource "azurerm_storage_account" "assets" {
-  name                            = replace("st${local.name}assets", "-", "")
-  resource_group_name             = azurerm_resource_group.rg.name
-  location                        = azurerm_resource_group.rg.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-  tags                            = local.tags
+# Section 8 — Storage Account (avatar + event photo uploads)
+resource "azurerm_storage_account" "main" {
+  name                     = "stunivolveprodassets"
+  location                 = azurerm_resource_group.main.location
+  resource_group_name      = azurerm_resource_group.main.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  tags                     = var.tags
 }
 
 resource "azurerm_storage_container" "avatars" {
   name                  = "avatars"
-  storage_account_name  = azurerm_storage_account.assets.name
-  container_access_type = "blob"
+  storage_account_id    = azurerm_storage_account.main.id
+  container_access_type = "private"
 }
 
-output "storage_connection_string" {
-  value     = azurerm_storage_account.assets.primary_connection_string
-  sensitive = true
-}
-
-resource "azurerm_private_endpoint" "blob" {
-  name                = "pe-blob-${local.name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  subnet_id           = azurerm_subnet.pe.id
-  # All private endpoints on snet-private-endpoints must be created sequentially -
-  # Azure serializes subnet-modifying operations and rejects concurrent attempts
-  # with "ReferencedResourceNotProvisioned ... subnet is in Updating state".
-  depends_on = [azurerm_private_endpoint.acr]
+# Create this private endpoint before the Key Vault one (step 9) — Azure serializes network
+# operations on a shared subnet, so doing two at once can transiently fail.
+resource "azurerm_private_endpoint" "storage" {
+  name                = "pe-storage-${var.prefix}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  subnet_id           = azurerm_subnet.private_endpoints.id
+  tags                = var.tags
 
   private_service_connection {
-    name                           = "blob-connection"
-    private_connection_resource_id = azurerm_storage_account.assets.id
+    name                           = "psc-storage"
+    private_connection_resource_id = azurerm_storage_account.main.id
     subresource_names              = ["blob"]
     is_manual_connection           = false
   }
 
   private_dns_zone_group {
-    name                 = "blob-dns-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+    name                 = "pdz-blob"
+    private_dns_zone_ids = [azurerm_private_dns_zone.zones["blob"].id]
   }
 }

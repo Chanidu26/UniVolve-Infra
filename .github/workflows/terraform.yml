@@ -1,11 +1,6 @@
 name: Terraform Infrastructure
 
 on:
-  push:
-    branches: [main]
-    paths: ["terraform/**"]
-  pull_request:
-    paths: ["terraform/**"]
   workflow_dispatch:
     inputs:
       action:
@@ -16,7 +11,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 env:
   TF_DIR: terraform
@@ -24,12 +18,13 @@ env:
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-  # Non-secret TF vars
-  TF_VAR_tenant_name: ${{ vars.TENANT_NAME }}
-  TF_VAR_tenant_id: ${{ vars.TENANT_ID }}
-  TF_VAR_api_client_id: ${{ vars.API_CLIENT_ID }}
   # Secret TF vars
   TF_VAR_db_admin_password: ${{ secrets.DB_ADMIN_PASSWORD }}
+  TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+  TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+  # Non-secret TF vars
+  TF_VAR_apim_publisher_email: ${{ vars.APIM_PUBLISHER_EMAIL }}
+  TF_VAR_super_admin_emails: ${{ vars.SUPER_ADMIN_EMAILS }}
 
 jobs:
   terraform:
@@ -62,24 +57,9 @@ jobs:
         id: plan
         run: terraform plan -no-color -out=tfplan
 
-      - name: Comment plan on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const output = `#### Terraform Plan 📋\n\`\`\`\n${{ steps.plan.outputs.stdout }}\n\`\`\``;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output.substring(0, 65000)
-            });
-
-      # Apply: automatic on push to main, or manual dispatch with action=apply
+      # Apply: manual dispatch only, with action=apply
       - name: Terraform Apply
-        if: >
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'workflow_dispatch' && inputs.action == 'apply')
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'apply'
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Destroy (manual only)

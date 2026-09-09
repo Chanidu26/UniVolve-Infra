@@ -1,50 +1,49 @@
-# Azure reports the APIM VNet-injected gateway VMSS as "deleted" via ARM before it
-# has actually finished decommissioning, which leaves a NIC on snet-apim that blocks
-# the subnet's own deletion. This forces Terraform to wait after destroying APIM,
-# before it attempts to destroy anything the subnet depends on. No effect on create.
-resource "time_sleep" "wait_for_apim_subnet_cleanup" {
-  depends_on       = [azurerm_subnet.apim]
-  destroy_duration = "20m"
-}
-
-# ---------- API Management (JWT validation, rate limiting, VNet forwarding) ----------
-resource "azurerm_api_management" "apim" {
-  name                 = "apim-${local.name}-${local.unique_suffix}"
-  resource_group_name  = azurerm_resource_group.rg.name
-  location             = azurerm_resource_group.rg.location
-  publisher_name       = "University VMS"
-  publisher_email      = "admin@university.lk"
+# Section 18 — API Management (public front door; VNet-injected, external mode)
+resource "azurerm_api_management" "main" {
+  name                 = "apim-${var.prefix}"
+  location             = azurerm_resource_group.main.location
+  resource_group_name  = azurerm_resource_group.main.name
+  publisher_name       = var.apim_publisher_name
+  publisher_email      = var.apim_publisher_email
   sku_name             = "Developer_1"
-  virtual_network_type = "External" # public front door, private backend reach
+  virtual_network_type = "External"
+  tags                 = var.tags
 
   virtual_network_configuration {
     subnet_id = azurerm_subnet.apim.id
   }
-  tags = local.tags
-  depends_on = [
-    azurerm_subnet_network_security_group_association.apim,
-    time_sleep.wait_for_apim_subnet_cleanup,
-  ]
+
+  depends_on = [azurerm_subnet_network_security_group_association.apim]
 }
 
-resource "azurerm_api_management_api" "vms" {
-  name                = "vms-api"
-  resource_group_name = azurerm_resource_group.rg.name
-  api_management_name = azurerm_api_management.apim.name
+resource "azurerm_api_management_api" "backend" {
+  name                = "univolve-api"
+  resource_group_name = azurerm_resource_group.main.name
+  api_management_name = azurerm_api_management.main.name
   revision            = "1"
-  display_name        = "VMS API"
+  display_name        = "univolve-api"
   path                = "api"
   protocols           = ["https"]
   service_url         = "https://${azurerm_container_app.backend.ingress[0].fqdn}"
-
-  subscription_required = false
 }
 
-# Policy: validate B2C JWT + rate limit before forwarding (NFR-03)
-resource "azurerm_api_management_api_policy" "policy" {
-  api_name            = azurerm_api_management_api.vms.name
-  api_management_name = azurerm_api_management.apim.name
-  resource_group_name = azurerm_resource_group.rg.name
+# Wildcard operation so all routes/methods pass through to the backend
+resource "azurerm_api_management_api_operation" "all" {
+  operation_id        = "all-operations"
+  api_name            = azurerm_api_management_api.backend.name
+  api_management_name = azurerm_api_management.main.name
+  resource_group_name = azurerm_resource_group.main.name
+  display_name        = "All operations"
+  method              = "*"
+  url_template        = "/*"
+}
+
+# Backend does its own session-JWT verification now (Google Sign-In → our own JWT), so this
+# policy only needs CORS + rate-limiting — no validate-jwt against a third-party IdP anymore.
+resource "azurerm_api_management_api_policy" "backend" {
+  api_name            = azurerm_api_management_api.backend.name
+  api_management_name = azurerm_api_management.main.name
+  resource_group_name = azurerm_resource_group.main.name
 
   xml_content = <<XML
 <policies>
@@ -55,11 +54,6 @@ resource "azurerm_api_management_api_policy" "policy" {
       <allowed-methods><method>*</method></allowed-methods>
       <allowed-headers><header>*</header></allowed-headers>
     </cors>
-    <validate-jwt header-name="Authorization" failed-validation-httpcode="401">
-      <openid-config url="https://${var.tenant_name}.ciamlogin.com/${var.tenant_name}.onmicrosoft.com/v2.0/.well-known/openid-configuration" />
-      <!-- Audience is the API app's own identifier, not either SPA's client ID -->
-      <audiences><audience>api://${var.api_client_id}</audience></audiences>
-    </validate-jwt>
     <rate-limit calls="100" renewal-period="60" />
   </inbound>
   <backend><base /></backend>
@@ -67,14 +61,4 @@ resource "azurerm_api_management_api_policy" "policy" {
   <on-error><base /></on-error>
 </policies>
 XML
-}
-
-resource "azurerm_api_management_api_operation" "wildcard" {
-  operation_id        = "all-operations"
-  api_name            = azurerm_api_management_api.vms.name
-  api_management_name = azurerm_api_management.apim.name
-  resource_group_name = azurerm_resource_group.rg.name
-  display_name        = "All operations"
-  method              = "GET"
-  url_template        = "/*"
 }
