@@ -67,6 +67,13 @@ resource "azurerm_key_vault_secret" "jwt_secret" {
   depends_on   = [azurerm_role_assignment.kv_admin_current_user]
 }
 
+resource "azurerm_key_vault_secret" "db_schema" {
+  name         = "db-schema"
+  value        = file("${path.module}/schema.sql")
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_role_assignment.kv_admin_current_user]
+}
+
 # Section 15 — Container App (backend)
 resource "azurerm_container_app" "backend" {
   name                         = "ca-backend-${var.prefix}"
@@ -74,6 +81,7 @@ resource "azurerm_container_app" "backend" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   revision_mode                = "Single"
   tags                         = var.tags
+  depends_on                   = [azurerm_key_vault_secret.db_schema]
 
   identity {
     type         = "UserAssigned"
