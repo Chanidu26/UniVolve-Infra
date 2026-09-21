@@ -41,9 +41,9 @@ variable "db_name" {
 }
 
 variable "backend_image" {
-  description = "Full backend container image reference (repo:tag). Point this at a placeholder until the app's own CI pipeline pushes a real image."
+  description = "Full backend container image reference in the UniVolve Azure Container Registry."
   type        = string
-  default     = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+  default     = "acrunivolveprod.azurecr.io/univolve-backend:latest"
 }
 
 variable "google_client_id" {

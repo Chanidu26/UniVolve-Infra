@@ -86,6 +86,10 @@ resource "azurerm_container_app" "backend" {
     azurerm_postgresql_flexible_server_configuration.extensions,
   ]
 
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.backend.id]
