@@ -40,11 +40,6 @@ output "volunteer_swa_api_key" {
   sensitive = true
 }
 
-output "apim_gateway_url" {
-  value = azurerm_api_management.main.gateway_url
-}
-
 output "vite_api_url" {
-  description = "Value to set as VITE_API_URL in both frontend deploy workflows"
-  value       = "${azurerm_api_management.main.gateway_url}/api"
+  value = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api"
 }

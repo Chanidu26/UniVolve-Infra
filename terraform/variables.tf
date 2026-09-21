@@ -63,17 +63,6 @@ variable "super_admin_emails" {
   default     = ""
 }
 
-variable "apim_publisher_name" {
-  description = "API Management publisher/organization name"
-  type        = string
-  default     = "UniVolve"
-}
-
-variable "apim_publisher_email" {
-  description = "API Management publisher contact email"
-  type        = string
-}
-
 variable "tags" {
   description = "Tags applied to every resource"
   type        = map(string)

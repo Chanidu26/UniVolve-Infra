@@ -12,8 +12,6 @@ jwt_secret = "change-me-to-a-long-random-secret"
 # Comma-separated Google account emails to treat as SUPER_ADMIN
 super_admin_emails = "you@example.com"
 
-apim_publisher_email = "you@example.com"
-
 # Optional overrides (defaults shown)
 # prefix               = "univolve-prod"
 # location             = "Southeast Asia"
@@ -21,5 +19,4 @@ apim_publisher_email = "you@example.com"
 # acs_data_location    = "Asia Pacific"
 # db_admin_username    = "univolveadmin"
 # db_name              = "univolvedb"
-# apim_publisher_name  = "UniVolve"
 # backend_image        = "acrunivolveprod.azurecr.io/univolve-backend:latest"

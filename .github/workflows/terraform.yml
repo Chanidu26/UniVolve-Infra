@@ -23,7 +23,6 @@ env:
   TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
   TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
   # Non-secret TF vars
-  TF_VAR_apim_publisher_email: ${{ vars.APIM_PUBLISHER_EMAIL }}
   TF_VAR_super_admin_emails: ${{ vars.SUPER_ADMIN_EMAILS }}
 
 jobs:

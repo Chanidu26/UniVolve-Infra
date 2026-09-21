@@ -14,7 +14,7 @@ resource "azurerm_container_app_environment" "main" {
   resource_group_name            = azurerm_resource_group.main.name
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.main.id
   infrastructure_subnet_id       = azurerm_subnet.aca.id
-  internal_load_balancer_enabled = true # APIM is the only public entry point, not this
+  internal_load_balancer_enabled = false
   tags                           = var.tags
 }
 
@@ -198,7 +198,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled = false # APIM is the only public entry point
+    external_enabled = true
     target_port      = 4000
     transport        = "auto"
 

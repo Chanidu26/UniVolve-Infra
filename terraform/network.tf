@@ -44,63 +44,7 @@ resource "azurerm_subnet" "private_endpoints" {
   address_prefixes     = ["10.10.3.0/24"]
 }
 
-resource "azurerm_subnet" "apim" {
-  name                 = "snet-apim"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.10.4.0/24"]
-}
-
-# Section 4 — NSG for the APIM subnet (mandatory before APIM can deploy into it)
-resource "azurerm_network_security_group" "apim" {
-  name                = "nsg-apim-${var.prefix}"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  tags                = var.tags
-
-  security_rule {
-    name                       = "allow-https-inbound"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "allow-http-inbound"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "allow-apim-management-inbound"
-    priority                   = 120
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3443"
-    source_address_prefix      = "ApiManagement"
-    destination_address_prefix = "*"
-  }
-}
-
-resource "azurerm_subnet_network_security_group_association" "apim" {
-  subnet_id                 = azurerm_subnet.apim.id
-  network_security_group_id = azurerm_network_security_group.apim.id
-}
-
-# Section 5 — NAT Gateway (outbound internet for the Container Apps subnet)
+# Section 4 — NAT Gateway (outbound internet for the Container Apps subnet)
 resource "azurerm_public_ip" "nat" {
   name                = "pip-nat-${var.prefix}"
   location            = azurerm_resource_group.main.location
