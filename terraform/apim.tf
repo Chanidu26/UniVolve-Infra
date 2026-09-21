@@ -17,14 +17,15 @@ resource "azurerm_api_management" "main" {
 }
 
 resource "azurerm_api_management_api" "backend" {
-  name                = "univolve-api"
-  resource_group_name = azurerm_resource_group.main.name
-  api_management_name = azurerm_api_management.main.name
-  revision            = "1"
-  display_name        = "univolve-api"
-  path                = "api"
-  protocols           = ["https"]
-  service_url         = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api"
+  name                  = "univolve-api"
+  resource_group_name   = azurerm_resource_group.main.name
+  api_management_name   = azurerm_api_management.main.name
+  revision              = "1"
+  display_name          = "univolve-api"
+  path                  = "api"
+  protocols             = ["https"]
+  subscription_required = false
+  service_url           = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api"
 }
 
 # Wildcard operation so all routes/methods pass through to the backend
