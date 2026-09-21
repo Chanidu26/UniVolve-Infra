@@ -1,17 +1,18 @@
 # Section 8 — Storage Account (avatar + event photo uploads)
 resource "azurerm_storage_account" "main" {
-  name                     = "stunivolveprodassets"
-  location                 = azurerm_resource_group.main.location
-  resource_group_name      = azurerm_resource_group.main.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  tags                     = var.tags
+  name                            = "stunivolveprodassets"
+  location                        = azurerm_resource_group.main.location
+  resource_group_name             = azurerm_resource_group.main.name
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+  tags                            = var.tags
 }
 
 resource "azurerm_storage_container" "avatars" {
   name                  = "avatars"
   storage_account_id    = azurerm_storage_account.main.id
-  container_access_type = "private"
+  container_access_type = "blob"
 }
 
 # Create this private endpoint before the Key Vault one (step 9) — Azure serializes network
