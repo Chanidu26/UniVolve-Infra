@@ -38,6 +38,16 @@ resource "azurerm_api_management_api_operation" "all" {
   url_template        = "/*"
 }
 
+resource "azurerm_api_management_api_operation" "google_login" {
+  operation_id        = "google-login"
+  api_name            = azurerm_api_management_api.backend.name
+  api_management_name = azurerm_api_management.main.name
+  resource_group_name = azurerm_resource_group.main.name
+  display_name        = "Google login"
+  method              = "POST"
+  url_template        = "/auth/google"
+}
+
 # Backend does its own session-JWT verification now (Google Sign-In → our own JWT), so this
 # policy only needs CORS + rate-limiting — no validate-jwt against a third-party IdP anymore.
 resource "azurerm_api_management_api_policy" "backend" {
