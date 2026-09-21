@@ -161,6 +161,10 @@ resource "azurerm_container_app" "backend" {
         value = azurerm_key_vault.main.vault_uri
       }
       env {
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.backend.client_id
+      }
+      env {
         name        = "JWT_SECRET"
         secret_name = "jwt-secret"
       }
