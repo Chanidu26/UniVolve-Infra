@@ -81,7 +81,10 @@ resource "azurerm_container_app" "backend" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   revision_mode                = "Single"
   tags                         = var.tags
-  depends_on                   = [azurerm_key_vault_secret.db_schema]
+  depends_on = [
+    azurerm_key_vault_secret.db_schema,
+    azurerm_postgresql_flexible_server_configuration.extensions,
+  ]
 
   identity {
     type         = "UserAssigned"

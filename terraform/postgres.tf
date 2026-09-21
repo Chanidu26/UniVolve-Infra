@@ -27,6 +27,12 @@ resource "azurerm_postgresql_flexible_server" "main" {
   depends_on = [azurerm_private_dns_zone_virtual_network_link.zones]
 }
 
+resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.main.id
+  value     = "pgcrypto"
+}
+
 resource "azurerm_postgresql_flexible_server_database" "main" {
   name      = var.db_name
   server_id = azurerm_postgresql_flexible_server.main.id
