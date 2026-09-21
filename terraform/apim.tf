@@ -25,7 +25,7 @@ resource "azurerm_api_management_api" "backend" {
   path                  = "api"
   protocols             = ["https"]
   subscription_required = false
-  service_url           = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api"
+  service_url           = "https://${azurerm_container_app.backend.ingress[0].fqdn}"
 }
 
 # Wildcard operation so all routes/methods pass through to the backend
@@ -47,6 +47,25 @@ resource "azurerm_api_management_api_operation" "google_login" {
   display_name        = "Google login"
   method              = "POST"
   url_template        = "/auth/google"
+}
+
+resource "azurerm_api_management_api_operation_policy" "google_login" {
+  api_name            = azurerm_api_management_api.backend.name
+  api_management_name = azurerm_api_management.main.name
+  resource_group_name = azurerm_resource_group.main.name
+  operation_id        = azurerm_api_management_api_operation.google_login.operation_id
+
+  xml_content = <<XML
+<policies>
+  <inbound>
+    <base />
+    <rewrite-uri template="/api/auth/google" />
+  </inbound>
+  <backend><base /></backend>
+  <outbound><base /></outbound>
+  <on-error><base /></on-error>
+</policies>
+XML
 }
 
 # Backend does its own session-JWT verification now (Google Sign-In → our own JWT), so this
