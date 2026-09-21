@@ -24,7 +24,7 @@ resource "azurerm_api_management_api" "backend" {
   display_name        = "univolve-api"
   path                = "api"
   protocols           = ["https"]
-  service_url         = "https://${azurerm_container_app.backend.ingress[0].fqdn}"
+  service_url         = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api"
 }
 
 # Wildcard operation so all routes/methods pass through to the backend
