@@ -24,7 +24,7 @@ resource "azurerm_api_management_api" "backend" {
   display_name        = "univolve-api"
   path                = "api"
   protocols           = ["https"]
-  service_url         = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api"
+  service_url         = "https://${azurerm_container_app.backend.ingress[0].fqdn}"
 }
 
 # Wildcard operation so all routes/methods pass through to the backend
@@ -49,6 +49,7 @@ resource "azurerm_api_management_api_policy" "backend" {
 <policies>
   <inbound>
     <base />
+    <rewrite-uri template="@('/api' + context.Request.OriginalUrl.Path.Substring(4))" />
     <cors allow-credentials="false">
       <allowed-origins><origin>*</origin></allowed-origins>
       <allowed-methods><method>*</method></allowed-methods>
