@@ -183,6 +183,10 @@ resource "azurerm_container_app" "backend" {
         name  = "SUPER_ADMIN_EMAILS"
         value = var.super_admin_emails
       }
+      env {
+        name  = "ALLOWED_ORIGINS"
+        value = "https://${azurerm_static_web_app.admin.default_host_name},https://${azurerm_static_web_app.volunteer.default_host_name}"
+      }
 
       liveness_probe {
         transport = "HTTP"
