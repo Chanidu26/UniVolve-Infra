@@ -41,9 +41,9 @@ variable "db_name" {
 }
 
 variable "backend_image" {
-  description = "Full backend container image reference in the UniVolve Azure Container Registry."
+  description = "Full backend image reference. Set to the ACR image after the backend workflow pushes it; leave empty to use the bootstrap image."
   type        = string
-  default     = "acrunivolveprod.azurecr.io/univolve-backend:latest"
+  default     = ""
 }
 
 variable "google_client_id" {

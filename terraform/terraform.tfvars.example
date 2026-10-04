@@ -19,4 +19,5 @@ super_admin_emails = "you@example.com"
 # acs_data_location    = "Asia Pacific"
 # db_admin_username    = "univolveadmin"
 # db_name              = "univolvedb"
+# Leave empty for the bootstrap image, or set after the backend image is pushed:
 # backend_image        = "acrunivolveprod.azurecr.io/univolve-backend:latest"

@@ -127,7 +127,7 @@ resource "azurerm_container_app" "backend" {
 
     container {
       name   = "backend"
-      image  = var.backend_image
+      image  = var.backend_image != "" ? var.backend_image : "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
       cpu    = 0.5
       memory = "1Gi"
 
