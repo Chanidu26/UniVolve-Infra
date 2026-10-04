@@ -5,11 +5,11 @@ resource "azurerm_resource_group" "main" {
   tags     = var.tags
 }
 
-# Section 2 — Register resource providers (fresh subscriptions sometimes aren't registered for these)
-resource "azurerm_resource_provider_registration" "app" {
-  name = "Microsoft.App"
-}
+# # Section 2 — Register resource providers (fresh subscriptions sometimes aren't registered for these)
+# resource "azurerm_resource_provider_registration" "app" {
+#   name = "Microsoft.App"
+# }
 
-resource "azurerm_resource_provider_registration" "communication" {
-  name = "Microsoft.Communication"
-}
+# resource "azurerm_resource_provider_registration" "communication" {
+#   name = "Microsoft.Communication"
+# }
