@@ -135,5 +135,3 @@ ACR:                acrunivolveprod
 
 Run the `Terraform Infrastructure` GitHub Actions workflow manually. Choose `plan`, `apply`, or `destroy`.
 
-Azure resource provider registrations are subscription-level. Azure may delete all resource-group resources successfully but reject unregistering `Microsoft.App` or `Microsoft.Communication` with HTTP 409 if other resources use those providers. Leaving those providers registered is normal and harmless.
-
