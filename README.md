@@ -10,7 +10,7 @@ Terraform infrastructure for the UniVolve university volunteering and event mana
 
 Terraform creates or manages:
 
-- Resource group and required Azure resource provider registrations
+- Resource group
 - Virtual network with delegated Container Apps and PostgreSQL subnets
 - Private DNS zones and private endpoints for PostgreSQL, Key Vault, ACR, and Blob Storage
 - PostgreSQL Flexible Server and application database
@@ -39,6 +39,18 @@ az login
 az account set --subscription "<subscription-id>"
 az account show --output table
 ```
+
+## Azure Resource Provider Registrations
+
+Register Azure Subscription with `Microsoft.App` and `Microsoft.Communication`
+`Microsoft.App`: This is for Azure Container Apps 
+`Microsoft.Communication`: This is for Azure Communication Services (used for sending emails notifications).
+
+```powershell
+az provider register --namespace Microsoft.App
+az provider register --namespace Microsoft.Communication
+```
+
 
 ## Remote Terraform State
 
@@ -122,6 +134,4 @@ ACR:                acrunivolveprod
 ```
 
 Run the `Terraform Infrastructure` GitHub Actions workflow manually. Choose `plan`, `apply`, or `destroy`.
-
-Azure resource provider registrations are subscription-level. Azure may delete all resource-group resources successfully but reject unregistering `Microsoft.App` or `Microsoft.Communication` with HTTP 409 if other resources use those providers. Leaving those providers registered is normal and harmless.
 
