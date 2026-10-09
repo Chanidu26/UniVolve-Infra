@@ -32,12 +32,10 @@ output "volunteer_swa_default_hostname" {
 
 output "admin_swa_api_key" {
   value     = azurerm_static_web_app.admin.api_key
-  sensitive = true
 }
 
 output "volunteer_swa_api_key" {
   value     = azurerm_static_web_app.volunteer.api_key
-  sensitive = true
 }
 
 output "vite_api_url" {
