@@ -1,9 +1,9 @@
 # Azure Managed Redis for distributed API rate limiting
 resource "azurerm_managed_redis" "main" {
   name                  = "redis-${var.prefix}"
-  location              = azurerm_resource_group.main.location
+  location              = var.redis_location
   resource_group_name   = azurerm_resource_group.main.name
-  sku_name              = "Balanced_B3"
+  sku_name              = var.redis_sku
   public_network_access = "Disabled"
   tags                  = var.tags
 

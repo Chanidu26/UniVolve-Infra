@@ -22,6 +22,18 @@ variable "acs_data_location" {
   default     = "Asia Pacific"
 }
 
+variable "redis_location" {
+  description = "Azure region for Managed Redis. Override if capacity is unavailable in the primary region."
+  type        = string
+  default     = "Southeast Asia"
+}
+
+variable "redis_sku" {
+  description = "Managed Redis SKU. Balanced_B0 is sufficient for distributed API rate limiting."
+  type        = string
+  default     = "Balanced_B0"
+}
+
 variable "db_admin_username" {
   description = "PostgreSQL Flexible Server administrator login"
   type        = string

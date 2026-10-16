@@ -120,6 +120,15 @@ SUPER_ADMIN_EMAILS = "admin@example.com"
 
 Add these values to `UniVolve-Infra -> Settings -> Secrets and variables -> Actions`.
 
+Managed Redis defaults to the `Balanced_B0` SKU in Southeast Asia. `Balanced_B0` is sufficient
+for the backend's distributed rate-limit counters. If Azure reports `InsufficientCapacity`, set
+these optional repository Actions variables and rerun the workflow:
+
+```text
+REDIS_LOCATION = East Asia
+REDIS_SKU      = Balanced_B1
+```
+
 
 ## Terraform default Values
 
