@@ -15,6 +15,7 @@ Terraform creates or manages:
 - Private DNS zones and private endpoints for PostgreSQL, Key Vault, ACR, and Blob Storage
 - PostgreSQL Flexible Server and application database
 - Azure Container Registry
+- Azure Managed Redis with TLS, access-key authentication, and a VNet private endpoint
 - Log Analytics workspace and Container Apps environment
 - Public backend Container App with a user-assigned managed identity
 - Key Vault and application secrets
@@ -134,4 +135,3 @@ ACR:                acrunivolveprod
 ```
 
 Run the `Terraform Infrastructure` GitHub Actions workflow manually. Choose `plan`, `apply`, or `destroy`.
-

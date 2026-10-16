@@ -84,6 +84,7 @@ resource "azurerm_container_app" "backend" {
   depends_on = [
     azurerm_key_vault_secret.db_schema,
     azurerm_postgresql_flexible_server_configuration.extensions,
+    azurerm_private_endpoint.redis,
   ]
 
   lifecycle {
@@ -118,6 +119,11 @@ resource "azurerm_container_app" "backend" {
   secret {
     name                = "jwt-secret"
     key_vault_secret_id = azurerm_key_vault_secret.jwt_secret.versionless_id
+    identity            = azurerm_user_assigned_identity.backend.id
+  }
+  secret {
+    name                = "redis-password"
+    key_vault_secret_id = azurerm_key_vault_secret.redis_password.versionless_id
     identity            = azurerm_user_assigned_identity.backend.id
   }
 
@@ -174,6 +180,14 @@ resource "azurerm_container_app" "backend" {
       env {
         name        = "JWT_SECRET"
         secret_name = "jwt-secret"
+      }
+      env {
+        name  = "REDIS_URL"
+        value = "rediss://${azurerm_managed_redis.main.hostname}:6380"
+      }
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
       }
       env {
         name  = "GOOGLE_CLIENT_ID"

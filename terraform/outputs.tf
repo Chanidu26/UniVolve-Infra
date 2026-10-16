@@ -18,6 +18,14 @@ output "key_vault_name" {
   value = azurerm_key_vault.main.name
 }
 
+output "managed_redis_hostname" {
+  value = azurerm_managed_redis.main.hostname
+}
+
+output "managed_redis_url" {
+  value = "rediss://${azurerm_managed_redis.main.hostname}:6380"
+}
+
 output "container_app_name" {
   value = azurerm_container_app.backend.name
 }

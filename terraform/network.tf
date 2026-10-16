@@ -79,6 +79,7 @@ locals {
     keyvault = "privatelink.vaultcore.azure.net"
     acr      = "privatelink.azurecr.io"
     blob     = "privatelink.blob.core.windows.net"
+    redis    = "privatelink.redis.azure.net"
   }
 }
 
